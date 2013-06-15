@@ -54,7 +54,7 @@ class Controller
 	 */
 	public function getRequest() {
 		if (empty($this->request)) {
-			$this->request = new App\Controller\Request($_REQUEST);
+			$this->request = new \App\Controller\Request($_REQUEST);
 		}
 		return $this->request;
 	}
@@ -71,7 +71,7 @@ class Controller
 		
 		
 		$renderer = $this->getRenderer();
-		$useRenderer = $renderer instanceof App\View\Renderer;
+		$useRenderer = $renderer instanceof \App\View\Renderer;
 		if ( $useRenderer == true ) {
 			$path = $view;
 			$result = $renderer->render($path, $this->view);

@@ -91,13 +91,17 @@ class App {
 		
 		$mvc_len = count($mvc);
 		
+		parse_str($_SERVER['QUERY_STRING'], $params);
+		
+		if ( is_numeric($mvc[$mvc_len]) ) {
+			$params['id'] = $mvc[$mvc_len];
+		}
+		
 		if ($mvc_len < 3) {
 			for ($i = 0; $i < (3 - $mvc_len); $i++) {
 				array_unshift($mvc, 'index');
 			}
 		}
-
-		parse_str($_SERVER['QUERY_STRING'], $params);
 
 		if (!function_exists('arrayWalkCallbackGetMvc')) {
 
