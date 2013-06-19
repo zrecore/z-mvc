@@ -93,16 +93,25 @@ class App {
 		
 		parse_str($_SERVER['QUERY_STRING'], $params);
 		
-		if ( is_numeric($mvc[$mvc_len]) ) {
+		if ($mvc_len > 0 && is_numeric($mvc[$mvc_len]) ) {
 			$params['id'] = $mvc[$mvc_len];
+			$mvc[$mvc_len] = 'index';
 		}
 		
 		if ($mvc_len < 3) {
 			for ($i = 0; $i < (3 - $mvc_len); $i++) {
-				array_unshift($mvc, 'index');
+				if ($mvc_len < 2) {
+					array_unshift($mvc, 'index');
+				} else {
+					array_push($mvc, 'index');
+				}
 			}
+			$max = count($mvc) - 1;
+			$newKeys = range(0, $max);
+			
+			$mvc = array_combine($newKeys, $mvc);
 		}
-
+		
 		if (!function_exists('arrayWalkCallbackGetMvc')) {
 
 			function arrayWalkCallbackGetMvc(&$var, $key) {
@@ -125,8 +134,8 @@ class App {
 				// Ignore.
 			}
 		}
-
-		$mvc['params'] = $params;
+		
+		$mvc['params'] = array_merge($_REQUEST, $params);
 		$mvc['uri'] = $uri;
 
 		return $mvc;
@@ -233,15 +242,8 @@ class App {
 				$c->preDispatch();
 				$c->$a();
 
-				if ($useLayout) {
-					require_once(APP_PATH . '/' . $module . '/layout/' . $c->getLayout() . '-top.phtml');
-				}
+				$c->viewRender($file, $module, $controller, $action);
 
-				$c->viewRender($file);
-
-				if ($useLayout) {
-					require_once(APP_PATH . '/' . $module . '/layout/' . $c->getLayout() . '-bottom.phtml');
-				}
 			} else {
 				header('HTTP/1.0 404 Not Found');
 				echo "404 - Page not found.";

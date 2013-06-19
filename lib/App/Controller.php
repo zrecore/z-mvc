@@ -50,11 +50,11 @@ class Controller
 	}
 	/**
 	 * Get the request object.
-	 * @return Simple_Controller_Request
+	 * @return \App\Controller\Request
 	 */
 	public function getRequest() {
 		if (empty($this->request)) {
-			$this->request = new \App\Controller\Request($_REQUEST);
+			$this->request = new \App\Controller\Request(\App::getParams());
 		}
 		return $this->request;
 	}
@@ -62,7 +62,7 @@ class Controller
 	public function getView() {return $this->view;}
 	public function setView($view) {$this->view = $view; return $this;}
 	
-	public function viewRender($view) {
+	public function viewRender($view, $module, $controller, $action) {
 		$result = null;
 		
 		foreach($this->view as $key => $value) {
@@ -72,16 +72,44 @@ class Controller
 		
 		$renderer = $this->getRenderer();
 		$useRenderer = $renderer instanceof \App\View\Renderer;
+		
 		if ( $useRenderer == true ) {
 			$path = $view;
-			$result = $renderer->render($path, $this->view);
+
+			if (!empty($this->layout)) {
+				$top_layout = APP_PATH . '/' . $module . '/layout/' . $this->layout . '-top.phtml';
+				if (file_exists($top_layout)) {
+					$result .= $renderer->render($top_layout, $this->view);
+				}
+			}
+			
+			$result .= $renderer->render($path, $this->view);
+			
+			if (!empty($this->layout)) {
+				$bottom_layout = APP_PATH . '/' . $module . '/layout/' . $this->layout . '-bottom.phtml';
+				if (file_exists($bottom_layout)) {
+					$result .= $renderer->render($bottom_layout, $this->view);
+				}
+			}
 		} else {
 			
+			if (!empty($this->layout)) {
+				$top_layout = APP_PATH . '/' . $module . '/layout/' . $this->layout . '-top.phtml';
+				
+				if (file_exists($top_layout)) {
+					require_once($top_layout);
+				}
+			}
 			if (file_exists($view)) {
 				require_once($view);
 				$result = true;
 			} else {
 				throw new Exception('View not found.');
+			}
+			
+			if (!empty($this->layout)) {
+				$bottom_layout = APP_PATH . '/' . $module . '/layout/' . $this->layout . '-bottom.phtml';
+				require_once($bottom_layout);
 			}
 		}
 		
