@@ -86,12 +86,15 @@ class App {
 	static function getMVC() {
 		$uri = $_SERVER['REQUEST_URI'];
 		$path = preg_replace('/\?.*/', '', $uri);
-		$query = preg_replace('/.*\?/', '', $uri);
+		$query = str_replace($path, '', preg_replace('/^.*(\?)/', '', $uri));
 		$mvc = array_filter(explode('/', $path));
 		
 		$mvc_len = count($mvc);
 		
 		parse_str($_SERVER['QUERY_STRING'], $params);
+		parse_str($query, $moreParams);
+		
+		$params = array_merge($params, $moreParams);
 		
 		if ($mvc_len > 0 && is_numeric($mvc[$mvc_len]) ) {
 			$params['id'] = $mvc[$mvc_len];
@@ -106,11 +109,12 @@ class App {
 					array_push($mvc, 'index');
 				}
 			}
-			$max = count($mvc) - 1;
-			$newKeys = range(0, $max);
-			
-			$mvc = array_combine($newKeys, $mvc);
 		}
+		// Assert our array index starts at zero.
+		$max = count($mvc) - 1;
+		$newKeys = range(0, $max);
+
+		$mvc = array_combine($newKeys, $mvc);
 		
 		if (!function_exists('arrayWalkCallbackGetMvc')) {
 
@@ -237,13 +241,13 @@ class App {
 
 			$a = $actionMethod . 'Action';
 			
-			if (method_exists($c, $a) && $c instanceof App\Controller) {
+			if (method_exists($c, $a) && $c instanceof \App\Controller) {
 
 				$c->preDispatch();
 				$c->$a();
 
 				$c->viewRender($file, $module, $controller, $action);
-
+				
 			} else {
 				header('HTTP/1.0 404 Not Found');
 				echo "404 - Page not found.";

@@ -22,7 +22,7 @@ class Controller
 	}
 	
 	protected function forward($action) {
-		$actionMethod = $this->actionToViewName($action) . 'Action';
+		$actionMethod = \App::actionToViewName($action) . 'Action';
 		$this->$actionMethod();
 	}
 	
